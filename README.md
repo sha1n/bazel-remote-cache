@@ -25,4 +25,5 @@ doesn't have a significant performance impact.
 ## How To Use
 1. Make sure you have Python 3 in your `PATH`
 1. Copy `bazel`, `bazelwrapper.py` and `remotecache.py` into your `<REPO_HOME>/tools` directory
+1. [**recommended**] Use `build --incompatible_strict_action_env` in `.bazelrc` to fix the PATH on all workstations. Bazel uses `/usr/local/bin:/usr/bin:/bin` by default on non Windows systems. You should try to live with as few path elements as possible, but if that's not possible, you can use `--action_env=PATH=<your path>`
 1. That's it! Bazel will execute the `bazel` script every time you run a Bazel command.
