@@ -1,6 +1,6 @@
-# Bazel Wrapper
+# Bazel Remote Cache (macos only)
 This repository implements POC for a [Bazel](https://github.com/bazelbuild) wrapper script that automatically sets 
-remote HTTP cache flags based on local environment fingerprint. 
+shared remote HTTP cache flags based on local environment fingerprint. Implemented for MacOS only.
 
 ## Why Use Remote Cache?
 Building large projects can take a lot of time, even with Bazel. Remote caching with Bazel, allows any build machine to
