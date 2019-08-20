@@ -23,6 +23,7 @@ doesn't have a significant performance impact.
 2. Run all build on remote managed environments
 
 ## How To Use
+1. [**prerequisites**] This implementation assumes your workstation has access to a Google Cloud Storage bucket names [bazel-dev-remote-cache](https://github.com/sha1n/bazel-remote-cache/blob/2cf3ed868d8bdfacc21d55cea59c4f1581185b29/remotecache.py#L11). You can either set it up, or change the implementation, to use another target. See [Remote Caching](https://docs.bazel.build/versions/master/remote-caching.html) for more details about how it works.
 1. Make sure you have Python 3 in your `PATH`
 1. Copy `bazel`, `bazelwrapper.py` and `remotecache.py` into your `<REPO_HOME>/tools` directory
 1. [**recommended**] Use `build --incompatible_strict_action_env` in `.bazelrc` to fix the PATH on all workstations. Bazel uses `/usr/local/bin:/usr/bin:/bin` by default on non Windows systems. You should try to live with as few path elements as possible, but if that's not possible, you can use `--action_env=PATH=<your path>`
