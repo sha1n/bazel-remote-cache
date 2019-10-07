@@ -1,6 +1,5 @@
 import hashlib
 import os
-import os.path as path
 import platform
 import subprocess
 from typing import List
@@ -11,11 +10,10 @@ _REMOTE_CACHE_BASE_URL = "https://storage.googleapis.com"
 _DEFAULT_REMOTE_CACHE_BUCKET_NAME = "bazel-dev-remote-cache"
 
 
-def remote_cache_flags_for(os_name, config_dir=os.path.expanduser("~")):
+def remote_cache_flags_for(os_name):
     os_name_lower = os_name.lower()
     if os_name_lower == "darwin" and os.environ.get(_BAZEL_REMOTE_CACHE_FLAG_ENV_VAR_NAME, "0") != "1":
         return RemoteCacheFlagsResolver(
-            config_dir=config_dir,
             os_name=os_name_lower,
             env_fingerprint=_macos_fingerprint
         ).resolve_remote_cache_flags()
@@ -24,37 +22,24 @@ def remote_cache_flags_for(os_name, config_dir=os.path.expanduser("~")):
 
 
 class RemoteCacheFlagsResolver:
-    def __init__(self, config_dir, os_name, env_fingerprint):
-        self.config_dir = config_dir
+    def __init__(self, os_name, env_fingerprint):
         self.os_name = os_name
         self.env_fingerprint = env_fingerprint
 
     def resolve_remote_cache_flags(self) -> List[str]:
-        remote_cache_args = []
-
-        def gcloud_credentials_path_or_none():
-            gcloud_cred_path = path.join(self.config_dir, ".config", "gcloud", "application_default_credentials.json")
-            if path.exists(gcloud_cred_path):
-                return gcloud_cred_path
-
-            return None
-
-        gcloud_credentials_path = gcloud_credentials_path_or_none()
-        if gcloud_credentials_path is None:
-            return remote_cache_args
-
-        remote_cache_args.append(
+        return [
             "--remote_http_cache={base_url}/{bucket_name}/{path}/{macos_env_fingerprint}".format(
                 base_url=_REMOTE_CACHE_BASE_URL,
                 bucket_name=remote_cache_bucket_name(),
                 path=self.os_name,
                 macos_env_fingerprint=self.env_fingerprint(),
-            )
-        )
-        remote_cache_args.append("--experimental_guard_against_concurrent_changes")
-        remote_cache_args.append("--google_credentials={}".format(gcloud_credentials_path))
-
-        return remote_cache_args
+            ),
+            "--experimental_guard_against_concurrent_changes",
+            # This requires GCloud 'application-default' authentication to be set with a valid google account.
+            # On MacOS and Linux systems the credentials file should normally be located here:
+            #   ~/.config/gcloud/application_default_credentials.json
+            "--google_default_credentials=true"
+        ]
 
 
 def remote_cache_bucket_name():
@@ -68,6 +53,7 @@ def _macos_fingerprint():
                               stderr=subprocess.STDOUT,
                               encoding='utf-8').stdout
 
+    # OS version is added to the path for convenience only. OS version is already included in clang_fingerprint
     os_version = platform.mac_ver()[0]
     clang_version_info = clang_version()
     return "{os_version}/{clang_fingerprint}".format(
