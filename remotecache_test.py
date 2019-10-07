@@ -1,5 +1,4 @@
 import os
-import tempfile
 import unittest
 from unittest import mock
 from uuid import uuid4
@@ -88,11 +87,7 @@ class RemoteCacheFlagsResolverTest(unittest.TestCase):
 
     @staticmethod
     def new_remote_cache_flags_resolver(os_name="tests", env_fingerprint=fixed_env_fingerprint):
-        temp_config_dir = tempfile.mkdtemp(prefix="RemoteCacheFlagsResolverTest")
-        create_dummy_config_files(temp_config_dir)
-
         return RemoteCacheFlagsResolver(
-            config_dir=temp_config_dir,
             os_name=os_name,
             env_fingerprint=env_fingerprint
         )
@@ -147,12 +142,6 @@ def remote_cache_url_for(argmap):
 
 def resolved_args_map_for(resolver):
     return parse_bazel_args(resolver.resolve_remote_cache_flags())
-
-
-def create_dummy_config_files(path):
-    gcloud_config_dir = os.path.join(path, ".config", "gcloud")
-    os.makedirs(gcloud_config_dir)
-    open(os.path.join(gcloud_config_dir, "application_default_credentials.json"), 'a').close()
 
 
 def random_env_fingerprint():
