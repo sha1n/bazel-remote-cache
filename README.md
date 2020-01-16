@@ -28,3 +28,22 @@ doesn't have a significant performance impact.
 1. Copy `bazel`, `bazelwrapper.py` and `remotecache.py` into your `<REPO_HOME>/tools` directory
 1. [**recommended**] Use `build --incompatible_strict_action_env` in `.bazelrc` to fix the PATH on all workstations. Bazel uses `/usr/local/bin:/usr/bin:/bin` by default on non Windows systems. You should try to live with as few path elements as possible, but if that's not possible, you can use `--action_env=PATH=<your path>`
 1. That's it! Bazel will execute the `bazel` script every time you run a Bazel command.
+
+## Additional Considerations
+It is possible to eliminate caching based on action mnemonics using the `--modify_execution_info` flag. This approach is
+somewhat nasty, but since it operates on the meta-data level, it is very powerful and can be elegant, especially in 
+large projects. I successfully applied this technique to implement the following:
+
+### Turning off caching for docker layers and images
+ 
+`--modify_execution_info=JoinLayers=+no-remote-cache,ImageLayer=+no-remote-cache,GUNZIP=+no-remote-cache,GZIP=+no-remote-cache`
+
+This significantly improved build performance, because uploads and downloads of such large files evidently take more time
+than building them locally.  
+
+### Turning off caching for all CPP related targets 
+
+`--modify_execution_info=Cpp.*=+no-remote-cache,CcStrip=+no-remote-cache`
+
+This helped me avoid cache poisoning on MacOS and Linux systems that build primarily Java/Scala code and allow all 
+machines with the same OS family to share the same cache (unlike what this wrapper do)
